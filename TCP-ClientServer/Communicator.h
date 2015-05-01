@@ -8,15 +8,31 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol CommunicatorDelegate;
+
+typedef NS_ENUM(NSUInteger, CommunicatorStatus) {
+    wantToRead = 0,
+    WantToWrite = 1,
+    None = 2
+};
+
 @interface Communicator : NSObject <NSStreamDelegate>
 
--(void)connect;
-//-(NSString*)sendMessage: (NSString*)message;
+@property id <CommunicatorDelegate> delegate;
 
 @property BOOL shouldExit;
-
-@property BOOL headersSent;
 @property NSInputStream *inputstream;
 @property NSOutputStream *outputstream;
+@property NSString *messageToSend;
+@property CommunicatorStatus state;
+
+-(void)connect:(NSString *) host;
+-(void)sendMessage:(NSString *) message;
+
+@end
+
+@protocol CommunicatorDelegate <NSObject>
+
+-(void) gotResponse:(NSString *)response;
 
 @end

@@ -10,7 +10,7 @@
 
 @implementation Communicator
 
-@synthesize shouldExit, inputstream, outputstream, headersSent;
+@synthesize shouldExit, inputstream, outputstream, messageToSend, state, delegate;
 
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent{
     //NSLog(@"stream event %i", streamEvent);
@@ -20,15 +20,17 @@
             NSLog(@"CONNECTED!");
             break;
         case NSStreamEventHasSpaceAvailable:
-            if(theStream == outputstream && !headersSent){
-                NSData *data = [[NSData alloc] initWithData:[@"GET / HTTP/1.1\r\nHost: www.prf.gov.br\r\n\r\n" dataUsingEncoding:NSASCIIStringEncoding]];
+            if(theStream == outputstream && state == WantToWrite){
+                NSData *data = [[NSData alloc] initWithData:[messageToSend dataUsingEncoding:NSASCIIStringEncoding]];
                 
+                // Should we care if we can't send the whole message at once?
                 [outputstream write:[data bytes] maxLength:[data length]];
-                headersSent = true;
+                
+                state = wantToRead;
             }
             break;
         case NSStreamEventHasBytesAvailable:
-            if(theStream == inputstream){
+            if(theStream == inputstream && state == wantToRead){
                 NSInteger len;
                 uint8_t buffer[1024];
                 
@@ -39,31 +41,34 @@
                         NSString *output = [[NSString alloc] initWithBytes:buffer length:len encoding:NSASCIIStringEncoding];
                         
                         if (nil != output){
-                            NSLog(@"SERVER SAID:");
-                            NSLog(@"%@", output);
-                            
+                            [delegate gotResponse:output];
+                            state = None;
                         }
-                        
                     }
                 }
-                
-                    [self setShouldExit:true];
             }
             
         default:
+            NSLog(@"Error. Exiting.");
+            [self setShouldExit:true];
             break;
     }
     
 }
 
-- (void)connect{
+- (void) sendMessage:(NSString *) message{
+    [self setMessageToSend:message];
+    state = WantToWrite;
+}
+
+- (void)connect:(NSString *)host{
     // insert code here...
     NSLog(@"DA BITCH COMMUNICATOR!\n");
     
     CFReadStreamRef readstream;
     CFWriteStreamRef writestream;
     
-    CFStreamCreatePairWithSocketToHost(NULL, (CFStringRef)@"www.prf.gov.br", 80, &readstream, &writestream);
+    CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)host, 80, &readstream, &writestream);
     
     NSLog(@"Opening connection...");
     
