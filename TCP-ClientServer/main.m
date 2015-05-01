@@ -7,11 +7,27 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "Communicator.h"
 
-int main(int argc, const char * argv[]) {
-    @autoreleasepool {
-        // insert code here...
-        NSLog(@"Hello, World!");
-    }
-    return 0;
+int main(int argc, const char * argv[])
+{
+    NSRunLoop   * runLoop;
+    Communicator        * main; // replace with desired class
+    
+    @autoreleasepool
+    {
+        // create run loop
+        runLoop = [NSRunLoop currentRunLoop];
+        main    = [[Communicator alloc] init]; // replace with init method
+        
+        // kick off object, if required
+//        [main start];
+        
+        [main connect];
+        
+        // enter run loop
+        while((!(main.shouldExit)) && (([runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2]])));
+        
+    };
+    return(0);
 }

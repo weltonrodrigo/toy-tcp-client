@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1088A3F51AF319E2001A0808 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1088A3F41AF319E2001A0808 /* main.m */; };
+		1088A4001AF32625001A0808 /* Communicator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1088A3FF1AF32625001A0808 /* Communicator.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		1088A3F11AF319E2001A0808 /* TCP-ClientServer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "TCP-ClientServer"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1088A3F41AF319E2001A0808 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		1088A3FE1AF32625001A0808 /* Communicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Communicator.h; sourceTree = "<group>"; };
+		1088A3FF1AF32625001A0808 /* Communicator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Communicator.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				1088A3F41AF319E2001A0808 /* main.m */,
+				1088A3FE1AF32625001A0808 /* Communicator.h */,
+				1088A3FF1AF32625001A0808 /* Communicator.m */,
 			);
 			path = "TCP-ClientServer";
 			sourceTree = "<group>";
@@ -118,6 +123,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1088A4001AF32625001A0808 /* Communicator.m in Sources */,
 				1088A3F51AF319E2001A0808 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
