@@ -20,11 +20,13 @@ int main(int argc, const char * argv[])
         runLoop = [NSRunLoop currentRunLoop];
         main    = [[Communicator alloc] init]; // replace with init method
         
-        [main connect:@"www.prf.gov.br"];
-        [main sendMessage:@"GET / HTTP/1.1\r\n"];
+        [main connect:@"localhost"];
+        NSString *response = [main sendMessage:@"GET / HTTP/1.1\r\n"];
+        
+        NSLog(response);
         
         // enter run loop
-        while((!(main.shouldExit)) && (([runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2]])));
+        while((!([main shouldExit])) && (([runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2]])));
         
     };
     return(0);

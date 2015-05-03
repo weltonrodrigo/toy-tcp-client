@@ -13,7 +13,7 @@
 typedef NS_ENUM(NSUInteger, CommunicatorStatus) {
     wantToRead = 0,
     WantToWrite = 1,
-    None = 2
+    Idle = 2
 };
 
 @interface Communicator : NSObject <NSStreamDelegate>
@@ -27,7 +27,9 @@ typedef NS_ENUM(NSUInteger, CommunicatorStatus) {
 @property CommunicatorStatus state;
 
 -(void)connect:(NSString *) host;
--(void)sendMessage:(NSString *) message;
+
+// Synchronous request. Will block.
+-(NSString *)sendMessage:(NSString *) message;
 
 @end
 

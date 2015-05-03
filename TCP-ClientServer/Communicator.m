@@ -12,6 +12,8 @@
 
 @synthesize shouldExit, inputstream, outputstream, messageToSend, state, delegate;
 
+NSString *serverResponse;
+
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent{
     //NSLog(@"stream event %i", streamEvent);
     
@@ -21,7 +23,7 @@
             break;
         case NSStreamEventHasSpaceAvailable:
             if(theStream == outputstream && state == WantToWrite){
-                NSData *data = [[NSData alloc] initWithData:[messageToSend dataUsingEncoding:NSASCIIStringEncoding]];
+                NSData *data = [[NSData alloc] initWithData:[messageToSend dataUsingEncoding:NSUTF8StringEncoding]];
                 
                 // Should we care if we can't send the whole message at once?
                 [outputstream write:[data bytes] maxLength:[data length]];
@@ -38,11 +40,11 @@
                     len = [inputstream read:buffer maxLength:sizeof(buffer)];
                     
                     if(len > 0 ){
-                        NSString *output = [[NSString alloc] initWithBytes:buffer length:len encoding:NSASCIIStringEncoding];
+                        NSString *output = [[NSString alloc] initWithBytes:buffer length:len encoding:NSUTF8StringEncoding];
                         
                         if (nil != output){
-                            [delegate gotResponse:output];
-                            state = None;
+                            serverResponse = output;
+                            state = Idle;
                         }
                     }
                 }
@@ -56,9 +58,11 @@
     
 }
 
-- (void) sendMessage:(NSString *) message{
+- (NSString *) sendMessage:(NSString *) message{
     [self setMessageToSend:message];
     state = WantToWrite;
+    
+    return serverResponse;
 }
 
 - (void)connect:(NSString *)host{
@@ -68,7 +72,7 @@
     CFReadStreamRef readstream;
     CFWriteStreamRef writestream;
     
-    CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)host, 80, &readstream, &writestream);
+    CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)host, 8000, &readstream, &writestream);
     
     NSLog(@"Opening connection...");
     

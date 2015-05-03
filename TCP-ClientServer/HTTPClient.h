@@ -11,6 +11,6 @@
 
 @interface HTTPClient : NSObject <CommunicatorDelegate>
 
--(void)get:(NSString *)url;
+-(void)getNSStringUrl:(NSString *)url;
 
 @end
