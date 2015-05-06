@@ -12,27 +12,30 @@
 #include "strings.h"
 
 
+#define SOCK_BUF_SIZE 15000
+#define CRLF "\r\n"
+#define GET_ROOT "GET / HTTP/1.1" CRLF "Host: www.prf.gov.br" CRLF CRLF
+
 int main(int argc, const char * argv[]) {
     
-    int  port;
-    char *server_response = "";
+    char message[] = GET_ROOT;
+    
+    char server_response[SOCK_BUF_SIZE];
     struct tcp_connection conn;
     
-    char *GET_ROOT = "GET / HTTP/1.1\r\n";
+    bzero(&conn, sizeof(conn));
     
-    //strcpy(*host, argv[0]);
-    char *host = "www.prf.gov.br";
+    // Connect to host
+    int err = connect_to_host(&conn, (char *)argv[1], (char *)argv[2]);
     
-//    port = atoi(argv[1]);
-    port = 80;
+    if (err) {
+        printf("Erro ao conectar:%s\n", strerror(err));
+        exit(1);
+    }
     
-    conn = connect_to_host(&host, port);
+    size_t status = send_message(&conn, message, server_response, sizeof(server_response));
     
-    size_t status = send_message(conn, &GET_ROOT);
-    
-    if (status == sizeof(GET_ROOT)){
-        get_server_response(&server_response);
-        
+    if (status == 0){
         printf("%s", server_response);
     }
     

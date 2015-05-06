@@ -7,66 +7,87 @@
 //
 
 #include "tcpclient.h"
-#include "sys/socket.h"
-#include "stdio.h"
+#include <sys/socket.h>
+#include <stdio.h>
+#include "stdlib.h"
 #include "netinet/in.h"
 #include "arpa/inet.h"
 #include "string.h"
 #include <stdlib.h>
+#include "err.h"
+#include <unistd.h>
 
-char *message_to_send[];
-char *server_response[];
 
-struct tcp_connection connect_to_host (char *host[], int port){
-    int socketfd, result_code;
+int connect_to_host (struct tcp_connection *conn, char host[], char port[]){
+//    int socketfd;
+
+//    int err = getaddrinfo(host, port, 0, &conn->addrinfo);
     
-    struct sockaddr_in servaddr;
-    struct tcp_connection established_connection;
+    ////////
+    struct addrinfo *res, *res0;
+    int error;
+    int s;
+    const char *cause = NULL;
     
-    socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    conn->addrinfo.ai_family = PF_INET;
+    conn->addrinfo.ai_socktype = SOCK_STREAM;
     
-    bzero(&servaddr, sizeof(servaddr));
-    bzero(&established_connection, sizeof(established_connection));
-    
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(*host);
-    servaddr.sin_port = HTONS(port);
-    
-    result_code = connect(socketfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-    
-    if (result_code == -1){
-        printf("Erro ao connectar. Saindo.\n");
-        exit(1);
+    error = getaddrinfo(host, port, &conn->addrinfo, &res0);
+    if (error) {
+        errx(1, "%s", gai_strerror(error));
+        /*NOTREACHED*/
+    }
+    s = -1;
+    for (res = res0; res; res = res->ai_next) {
+        s = socket(res->ai_family, res->ai_socktype,
+                   res->ai_protocol);
+        if (s < 0) {
+            cause = "socket";
+            continue;
+        }
+        
+        if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
+            cause = "connect";
+            close(s);
+            s = -1;
+            continue;
+        }
+        
+        break;  /* okay we got one */
+    }
+    if (s < 0) {
+        err(1, "%s", cause);
+        /*NOTREACHED*/
     }
     
-    established_connection.servaddr = &servaddr;
-    established_connection.socketfd = socketfd;
-    
-    return established_connection;
+    conn->addrinfo = *res;
+    conn->socketfd = s;
+    return 0;
 }
 
-size_t send_message (struct tcp_connection conn, char *message[]){
-    size_t bytes_sent;
-    size_t n;
-    
+size_t send_message (struct tcp_connection *conn, char message[], char *buffer, size_t bufsize){
+    size_t bytes_sent = 0;
+    size_t n = 0;
     
     bytes_sent =
-    sendto(conn.socketfd, &message, sizeof(&message), 0, (struct sockaddr *) conn.servaddr, sizeof(conn.servaddr));
+    sendto(conn->socketfd, message, strlen(message), 0, conn->addrinfo.ai_addr, conn->addrinfo.ai_addrlen);
     
     if ( bytes_sent < sizeof(&message)) {
         // there was an error, I gess.
         return -1;
     }
     
-    // We did good, now lets read the response, if any.
-    n = recvfrom(conn.socketfd, server_response, 10000, 0, NULL, NULL);
-    server_response[n] = 0;
+    size_t total_read = 0;
     
-    return bytes_sent;
+    while (total_read <= bufsize) {
+        n = recvfrom(conn->socketfd, buffer + total_read, bufsize, 0, NULL, NULL);
+        if (n == 0) {
+            //No data left on socket.
+            break;
+        }
+        total_read += n;
+    }
+    buffer[total_read] = 0;
     
+    return 0;
 }
-
-void get_server_response(char *buffer[]){
-    strcpy(*buffer, *server_response);
-}
-
